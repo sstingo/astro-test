@@ -1,0 +1,50 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BlogList from '../../components/BlogList.astro';
+import { getAllPosts } from '../../lib/sanity';
+import type { Post } from '../../types/sanity';
+
+const posts: Post[] = await getAllPosts();
+---
+
+<Layout
+  title="所有文章"
+  description="瀏覽所有 blog 文章"
+>
+  <div class="page-header">
+    <h1>所有文章</h1>
+    <p>共 {posts.length} 篇文章</p>
+  </div>
+
+  {posts.length > 0 ? (
+    <BlogList posts={posts} />
+  ) : (
+    <p class="no-posts">暫無文章，請在 Sanity 中創建文章。</p>
+  )}
+</Layout>
+
+<style>
+  .page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-header p {
+    color: var(--color-secondary);
+    font-size: 1.125rem;
+  }
+
+  .no-posts {
+    text-align: center;
+    color: var(--color-secondary);
+    padding: 3rem 0;
+    font-size: 1.125rem;
+  }
+</style>

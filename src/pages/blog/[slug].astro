@@ -1,0 +1,268 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getAllPosts, getPostBySlug } from '../../lib/sanity';
+import { urlFor } from '../../lib/imageUrl';
+import { portableTextToHtml } from '../../lib/portableText';
+import type { Post } from '../../types/sanity';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+
+  return posts.map((post: Post) => ({
+    params: { slug: post.slug.current },
+  }));
+}
+
+const { slug } = Astro.params;
+const post: Post = await getPostBySlug(slug!);
+
+if (!post) {
+  return Astro.redirect('/404');
+}
+
+const formattedDate = new Date(post.publishedAt).toLocaleDateString('zh-TW', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const imageUrl = post.mainImage
+  ? urlFor(post.mainImage).width(1200).auto('format').url()
+  : undefined;
+
+const bodyHtml = post.body ? portableTextToHtml(post.body) : '';
+
+const seoTitle = post.seo?.metaTitle || post.title;
+const seoDescription = post.seo?.metaDescription || post.excerpt || '';
+---
+
+<Layout
+  title={seoTitle}
+  description={seoDescription}
+  image={imageUrl}
+  article={true}
+>
+  <article class="post">
+    <header class="post-header">
+      <h1>{post.title}</h1>
+
+      <div class="post-meta">
+        <time datetime={post.publishedAt}>{formattedDate}</time>
+        {post.category && (
+          <>
+            <span class="separator">•</span>
+            <a href={`/category/${post.category.slug.current}`} class="category">
+              {post.category.title}
+            </a>
+          </>
+        )}
+      </div>
+
+      {post.excerpt && (
+        <p class="excerpt">{post.excerpt}</p>
+      )}
+
+      {post.mainImage && (
+        <div class="featured-image">
+          <img
+            src={urlFor(post.mainImage).width(1200).auto('format').url()}
+            alt={post.mainImage.alt || post.title}
+            loading="eager"
+          />
+        </div>
+      )}
+    </header>
+
+    <div class="post-content" set:html={bodyHtml} />
+
+    {post.tags && post.tags.length > 0 && (
+      <footer class="post-footer">
+        <div class="tags">
+          <span class="tags-label">標籤:</span>
+          {post.tags.map((tag) => (
+            <a href={`/tag/${tag.slug.current}`} class="tag">
+              #{tag.title}
+            </a>
+          ))}
+        </div>
+      </footer>
+    )}
+  </article>
+</Layout>
+
+<style>
+  .post {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .post-header {
+    margin-bottom: 3rem;
+  }
+
+  .post-header h1 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+
+  .separator {
+    opacity: 0.5;
+  }
+
+  .category {
+    color: var(--color-primary);
+    font-weight: 500;
+  }
+
+  .excerpt {
+    font-size: 1.25rem;
+    color: var(--color-secondary);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+
+  .featured-image {
+    margin: 2rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .featured-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .post-content {
+    font-size: 1.125rem;
+    line-height: 1.8;
+  }
+
+  .post-content :global(h2) {
+    font-size: 1.875rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .post-content :global(h3) {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .post-content :global(p) {
+    margin-bottom: 1.5rem;
+  }
+
+  .post-content :global(ul),
+  .post-content :global(ol) {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+  }
+
+  .post-content :global(li) {
+    margin-bottom: 0.5rem;
+  }
+
+  .post-content :global(figure) {
+    margin: 2rem 0;
+  }
+
+  .post-content :global(figure img) {
+    border-radius: 0.5rem;
+  }
+
+  .post-content :global(figcaption) {
+    text-align: center;
+    color: var(--color-secondary);
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+  }
+
+  .post-content :global(blockquote) {
+    border-left: 4px solid var(--color-primary);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    color: var(--color-secondary);
+    font-style: italic;
+  }
+
+  .post-content :global(code) {
+    background-color: #f7fafc;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.9em;
+    font-family: 'Courier New', monospace;
+  }
+
+  .post-content :global(pre) {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 2rem 0;
+  }
+
+  .post-content :global(pre code) {
+    background-color: transparent;
+    padding: 0;
+    color: inherit;
+  }
+
+  .post-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .tags-label {
+    font-weight: 600;
+    color: var(--color-secondary);
+  }
+
+  .tag {
+    background-color: #f7fafc;
+    color: var(--color-primary);
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+  }
+
+  .tag:hover {
+    background-color: #e2e8f0;
+    text-decoration: none;
+  }
+
+  @media (max-width: 768px) {
+    .post-header h1 {
+      font-size: 2rem;
+    }
+
+    .excerpt {
+      font-size: 1.125rem;
+    }
+
+    .post-content {
+      font-size: 1rem;
+    }
+  }
+</style>

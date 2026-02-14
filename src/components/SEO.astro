@@ -1,0 +1,44 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  article?: boolean;
+}
+
+const {
+  title,
+  description = '一個使用 Astro 和 Sanity 構建的現代化 blog',
+  image = '/og-image.png',
+  article = false
+} = Astro.props;
+
+const siteName = 'Astro Blog';
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const fullTitle = title ? `${title} | ${siteName}` : siteName;
+const imageUrl = new URL(image, Astro.site);
+---
+
+<!-- 基本 Meta 標籤 -->
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalURL} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content={article ? 'article' : 'website'} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:site_name" content={siteName} />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:url" content={canonicalURL} />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={imageUrl} />
+
+<!-- 額外的 SEO 標籤 -->
+<meta name="robots" content="index, follow" />
+<meta name="googlebot" content="index, follow" />

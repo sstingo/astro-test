@@ -1,0 +1,74 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BlogList from '../../components/BlogList.astro';
+import { getAllCategories, getCategoryBySlug, getPostsByCategory } from '../../lib/sanity';
+import type { Category, Post } from '../../types/sanity';
+
+export async function getStaticPaths() {
+  const categories = await getAllCategories();
+
+  return categories.map((category: Category) => ({
+    params: { slug: category.slug.current },
+  }));
+}
+
+const { slug } = Astro.params;
+const category: Category = await getCategoryBySlug(slug!);
+const posts: Post[] = await getPostsByCategory(slug!);
+
+if (!category) {
+  return Astro.redirect('/404');
+}
+---
+
+<Layout
+  title={`${category.title} - 分類`}
+  description={category.description || `查看所有 ${category.title} 分類的文章`}
+>
+  <div class="page-header">
+    <h1>{category.title}</h1>
+    {category.description && (
+      <p class="description">{category.description}</p>
+    )}
+    <p class="count">共 {posts.length} 篇文章</p>
+  </div>
+
+  {posts.length > 0 ? (
+    <BlogList posts={posts} />
+  ) : (
+    <p class="no-posts">此分類暫無文章</p>
+  )}
+</Layout>
+
+<style>
+  .page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-primary);
+  }
+
+  .description {
+    font-size: 1.125rem;
+    color: var(--color-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .count {
+    color: var(--color-secondary);
+    font-size: 1rem;
+  }
+
+  .no-posts {
+    text-align: center;
+    color: var(--color-secondary);
+    font-size: 1.125rem;
+    padding: 3rem 0;
+  }
+</style>
