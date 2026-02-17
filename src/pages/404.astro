@@ -1,0 +1,118 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="404 — 找不到頁面"
+  description="你所尋找的頁面不存在"
+>
+  <section class="not-found">
+    <div class="container">
+      <p class="error-code">404</p>
+      <h1>找不到頁面</h1>
+      <p class="error-desc">你所尋找的頁面可能已移除、更名，或從未存在過。</p>
+      <div class="error-actions">
+        <a href="/" class="btn btn-primary">回到首頁</a>
+        <a href="/blog" class="btn-ghost">查看文章</a>
+      </div>
+    </div>
+
+    <!-- 裝飾：雪山 -->
+    <div class="mountains" aria-hidden="true">
+      <svg viewBox="0 0 1440 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,200 L0,140 L120,60 L200,100 L320,20 L440,90 L560,40 L680,110 L800,50 L920,120 L1040,30 L1160,100 L1280,55 L1440,130 L1440,200 Z" fill="rgba(255,255,255,0.04)"/>
+        <path d="M0,200 L0,160 L180,90 L300,130 L420,70 L560,120 L700,65 L840,130 L960,75 L1100,140 L1220,80 L1340,130 L1440,100 L1440,200 Z" fill="rgba(255,255,255,0.03)"/>
+      </svg>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .not-found {
+    position: relative;
+    min-height: calc(100vh - 60px);
+    background: linear-gradient(
+      160deg,
+      var(--color-hero-from) 0%,
+      var(--color-hero-mid) 55%,
+      var(--color-hero-to) 100%
+    );
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    margin-top: -1px;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: var(--space-16) var(--space-4);
+  }
+
+  .error-code {
+    font-size: clamp(6rem, 20vw, 12rem);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    color: transparent;
+    -webkit-text-stroke: 2px rgba(255, 107, 74, 0.4);
+    line-height: 1;
+    margin-bottom: var(--space-4);
+    letter-spacing: -0.04em;
+  }
+
+  h1 {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: white;
+    margin-bottom: var(--space-4);
+  }
+
+  .error-desc {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: var(--space-8);
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .error-actions {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 1.4rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    transition: color var(--transition), border-color var(--transition);
+  }
+
+  .btn-ghost:hover {
+    color: white;
+    border-color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+  }
+
+  .mountains {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    pointer-events: none;
+  }
+
+  .mountains svg {
+    width: 100%;
+    height: 100%;
+  }
+</style>

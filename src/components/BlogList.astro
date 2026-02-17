@@ -19,12 +19,6 @@ const { posts } = Astro.props;
   .blog-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
-  }
-
-  @media (max-width: 768px) {
-    .blog-list {
-      grid-template-columns: 1fr;
-    }
+    gap: var(--space-6);
   }
 </style>
