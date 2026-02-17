@@ -1,15 +1,39 @@
 ---
+const pathname = Astro.url.pathname;
+
+const navLinks = [
+  { href: "/",         label: "首頁" },
+  { href: "/about",    label: "關於" },
+  { href: "/projects", label: "作品集" },
+  { href: "/blog",     label: "部落格" },
+  { href: "/contact",  label: "聯絡" },
+];
+
+function isActive(href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname.startsWith(href);
+}
 ---
 
 <header>
   <div class="container">
-    <div class="logo">
-      <a href="/">Astro Blog</a>
-    </div>
+    <a href="/" class="logo">
+      <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m18 16 4-4-4-4"/>
+        <path d="m6 8-4 4 4 4"/>
+        <path d="m14.5 4-5 16"/>
+      </svg>
+      張允庭
+    </a>
     <nav>
       <ul>
-        <li><a href="/">首頁</a></li>
-        <li><a href="/blog">文章</a></li>
+        {navLinks.map((link) => (
+          <li>
+            <a href={link.href} class={isActive(link.href) ? "active" : ""}>
+              {link.label}
+            </a>
+          </li>
+        ))}
       </ul>
     </nav>
   </div>
@@ -17,42 +41,84 @@
 
 <style>
   header {
-    background-color: var(--color-primary);
-    color: white;
-    padding: 1rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: var(--color-hero-from);
+    padding: var(--space-4) 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(8px);
   }
 
   .container {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 var(--space-4);
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
-  .logo a {
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     color: white;
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
     text-decoration: none;
+    letter-spacing: -0.01em;
+    transition: opacity var(--transition);
+  }
+
+  .logo:hover {
+    opacity: 0.85;
+    color: white;
+  }
+
+  .logo-icon {
+    color: var(--color-accent);
+    flex-shrink: 0;
   }
 
   nav ul {
     display: flex;
-    gap: 2rem;
+    gap: var(--space-6);
     list-style: none;
   }
 
   nav a {
-    color: white;
+    color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
-    transition: opacity 0.2s;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: var(--space-1) 0;
+    border-bottom: 2px solid transparent;
+    transition: color var(--transition), border-color var(--transition);
   }
 
   nav a:hover {
-    opacity: 0.8;
+    color: white;
     text-decoration: none;
+  }
+
+  nav a.active {
+    color: white;
+    border-bottom-color: var(--color-accent);
+  }
+
+  @media (max-width: 640px) {
+    .logo {
+      font-size: 1.1rem;
+    }
+
+    nav ul {
+      gap: var(--space-4);
+    }
+
+    nav a {
+      font-size: 0.82rem;
+    }
   }
 </style>

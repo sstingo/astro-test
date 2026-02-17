@@ -27,3 +27,6 @@ pnpm-debug.log*
 
 # Sanity
 .sanity/
+
+# 開發用草稿、預覽檔（不需要進 git）
+.scratch/
