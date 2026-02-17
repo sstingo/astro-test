@@ -1,0 +1,174 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+// TODO: 替換為真實聯絡資訊
+const email = "your@email.com";
+const linkedinUrl = "https://www.linkedin.com/in/your-profile/";
+---
+
+<Layout
+  title="聯絡我 — 張允庭"
+  description="歡迎透過 Email 或 LinkedIn 與我聯絡"
+>
+  <!-- ===== Page Hero ===== -->
+  <section class="page-hero">
+    <div class="container">
+      <p class="page-eyebrow">Contact</p>
+      <h1>聯絡我</h1>
+      <p class="page-subtitle">有任何合作機會或想法，歡迎隨時與我聯絡</p>
+    </div>
+  </section>
+
+  <!-- ===== 聯絡方式 ===== -->
+  <section class="section">
+    <div class="container contact-wrapper">
+      <div class="contact-cards">
+
+        <a href={`mailto:${email}`} class="contact-card">
+          <div class="contact-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect width="20" height="16" x="2" y="4" rx="2"/>
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
+          </div>
+          <div class="contact-info">
+            <span class="contact-label">Email</span>
+            <span class="contact-value">{email}</span>
+          </div>
+          <svg class="contact-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+          </svg>
+        </a>
+
+        <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" class="contact-card">
+          <div class="contact-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+              <rect width="4" height="12" x="2" y="9"/>
+              <circle cx="4" cy="4" r="2"/>
+            </svg>
+          </div>
+          <div class="contact-info">
+            <span class="contact-label">LinkedIn</span>
+            <span class="contact-value">張允庭</span>
+          </div>
+          <svg class="contact-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+          </svg>
+        </a>
+
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ===== Page Hero ===== */
+  .page-hero {
+    background: linear-gradient(
+      160deg,
+      var(--color-hero-from) 0%,
+      var(--color-hero-mid) 60%,
+      var(--color-hero-to) 100%
+    );
+    padding: 5rem 0 4rem;
+    margin-top: -1px;
+  }
+
+  .page-eyebrow {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-2);
+  }
+
+  .page-hero h1 {
+    color: white;
+    margin-bottom: var(--space-2);
+  }
+
+  .page-subtitle {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0;
+  }
+
+  /* ===== 聯絡卡片 ===== */
+  .contact-wrapper {
+    max-width: 560px;
+  }
+
+  .contact-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .contact-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+  }
+
+  .contact-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .contact-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 107, 74, 0.1);
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  .contact-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .contact-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .contact-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .contact-arrow {
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+    transition: transform var(--transition), color var(--transition);
+  }
+
+  .contact-card:hover .contact-arrow {
+    transform: translateX(4px);
+    color: var(--color-accent);
+  }
+</style>
