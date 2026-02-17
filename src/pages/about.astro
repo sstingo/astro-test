@@ -1,0 +1,385 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="關於我 — 張允庭"
+  description="Flutter Developer，熱愛滑雪與程式設計，分享技術與生活"
+>
+  <!-- ===== Page Hero ===== -->
+  <section class="page-hero">
+    <div class="container">
+      <p class="page-eyebrow">About Me</p>
+      <h1>關於我</h1>
+      <p class="page-subtitle">Flutter Developer · 滑雪愛好者</p>
+    </div>
+  </section>
+
+  <!-- ===== 個人簡介 ===== -->
+  <section class="section">
+    <div class="container about-grid">
+      <div class="about-text">
+        <h2>Hi，我是張允庭</h2>
+        <p>
+          <!-- TODO: 替換為你的自我介紹 -->
+          我是一位熱愛打造流暢使用者體驗的 Flutter Developer。平時喜歡探索跨平台開發的各種可能性，享受從 0 到 1 把想法變成真實 App 的過程。
+        </p>
+        <p>
+          除了寫程式，我也熱愛滑雪。在雪山上快速下滑的那種感覺，和寫出高效能程式碼的成就感其實很像——都需要專注、技巧，還有不斷練習。
+        </p>
+        <p>
+          這個網站是我分享技術文章、作品集和生活思考的地方。如果你也對 Flutter 開發或滑雪有興趣，歡迎聯絡我聊聊！
+        </p>
+        <div class="about-actions">
+          <a href="/projects" class="btn btn-primary">查看作品集</a>
+          <a href="/contact" class="btn btn-secondary">聯絡我</a>
+        </div>
+      </div>
+
+      <div class="about-photo">
+        <!-- TODO: 替換為個人照片 <img src="/photo.jpg" alt="張允庭" /> -->
+        <div class="photo-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M20 21a8 8 0 1 0-16 0"/>
+          </svg>
+          <p>個人照片</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 技能 ===== -->
+  <section class="section skills-section">
+    <div class="container">
+      <h2 class="section-title">技能</h2>
+      <div class="skills-groups">
+        <div class="skill-group">
+          <h3 class="skill-group-title">Mobile</h3>
+          <div class="skill-tags">
+            <span class="tag">Flutter</span>
+            <span class="tag">Dart</span>
+            <span class="tag">iOS</span>
+            <span class="tag">Android</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <h3 class="skill-group-title">Backend / Cloud</h3>
+          <div class="skill-tags">
+            <span class="tag">Firebase</span>
+            <span class="tag">REST API</span>
+            <span class="tag">Supabase</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <h3 class="skill-group-title">Frontend</h3>
+          <div class="skill-tags">
+            <span class="tag">Astro</span>
+            <span class="tag">HTML / CSS</span>
+            <span class="tag">TypeScript</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <h3 class="skill-group-title">工具</h3>
+          <div class="skill-tags">
+            <span class="tag">Git</span>
+            <span class="tag">Figma</span>
+            <span class="tag">Sanity CMS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 經歷 ===== -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">工作經歷</h2>
+      <div class="timeline">
+
+        <!-- TODO: 替換為真實工作經歷 -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <h3 class="timeline-role">Flutter Developer</h3>
+              <span class="timeline-period">2023 — 現在</span>
+            </div>
+            <p class="timeline-company">公司名稱</p>
+            <p class="timeline-desc">
+              負責開發與維護跨平台行動應用，使用 Flutter 建立高效能 UI 元件，並整合 Firebase 後端服務。
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <h3 class="timeline-role">職位名稱</h3>
+              <span class="timeline-period">2021 — 2023</span>
+            </div>
+            <p class="timeline-company">公司名稱</p>
+            <p class="timeline-desc">
+              工作內容描述，替換為你的實際職責與成就。
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ===== Page Hero ===== */
+  .page-hero {
+    background: linear-gradient(
+      160deg,
+      var(--color-hero-from) 0%,
+      var(--color-hero-mid) 60%,
+      var(--color-hero-to) 100%
+    );
+    padding: 5rem 0 4rem;
+    margin-top: -1px;
+  }
+
+  .page-eyebrow {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-2);
+  }
+
+  .page-hero h1 {
+    color: white;
+    margin-bottom: var(--space-2);
+  }
+
+  .page-subtitle {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0;
+  }
+
+  /* ===== 個人簡介 ===== */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: var(--space-16);
+    align-items: start;
+  }
+
+  .about-text h2 {
+    margin-bottom: var(--space-6);
+  }
+
+  .about-text p {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--color-text-muted);
+  }
+
+  .about-actions {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+    flex-wrap: wrap;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.6rem 1.4rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1.5px solid var(--color-border);
+    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .about-photo {
+    position: sticky;
+    top: 100px;
+  }
+
+  .photo-placeholder {
+    aspect-ratio: 1;
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    border: 2px dashed var(--color-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  /* 真實照片樣式（放好照片後用） */
+  .about-photo img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ===== 技能 ===== */
+  .skills-section {
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .skills-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-8);
+  }
+
+  .skill-group-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-3);
+  }
+
+  .skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* ===== 經歷 Timeline ===== */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding-left: var(--space-8);
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--color-border);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: var(--space-8);
+  }
+
+  .timeline-item:last-child {
+    padding-bottom: 0;
+  }
+
+  .timeline-dot {
+    position: absolute;
+    left: calc(-1 * var(--space-8) + 1px);
+    top: 8px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    border: 3px solid var(--color-bg);
+    box-shadow: 0 0 0 2px var(--color-accent);
+  }
+
+  .timeline-content {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition), transform var(--transition);
+  }
+
+  .timeline-content:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .timeline-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-1);
+  }
+
+  .timeline-role {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0;
+  }
+
+  .timeline-period {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    white-space: nowrap;
+  }
+
+  .timeline-company {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    margin-bottom: var(--space-3);
+  }
+
+  .timeline-desc {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    line-height: 1.7;
+    margin-bottom: 0;
+  }
+
+  /* ===== RWD ===== */
+  @media (max-width: 768px) {
+    .about-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .about-photo {
+      position: static;
+      max-width: 240px;
+      margin: 0 auto;
+      order: -1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .timeline {
+      padding-left: var(--space-6);
+    }
+
+    .timeline-dot {
+      left: calc(-1 * var(--space-6) + 1px);
+    }
+  }
+</style>
