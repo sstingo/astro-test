@@ -1,0 +1,82 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+import { projects } from "../../data/projects";
+---
+
+<Layout
+  title="作品集 — 張允庭"
+  description="Flutter 開發作品集，包含 App 開發、網頁專案等"
+>
+  <!-- ===== Page Hero ===== -->
+  <section class="page-hero">
+    <div class="container">
+      <p class="page-eyebrow">Portfolio</p>
+      <h1>作品集</h1>
+      <p class="page-subtitle">我做過的專案，從行動 App 到網頁開發</p>
+    </div>
+  </section>
+
+  <!-- ===== 作品列表 ===== -->
+  <section class="section">
+    <div class="container">
+      {projects.length > 0 ? (
+        <div class="projects-grid">
+          {projects.map((project) => (
+            <ProjectCard project={project} />
+          ))}
+        </div>
+      ) : (
+        <div class="empty-state">
+          <p>作品即將登場，敬請期待！</p>
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .page-hero {
+    background: linear-gradient(
+      160deg,
+      var(--color-hero-from) 0%,
+      var(--color-hero-mid) 60%,
+      var(--color-hero-to) 100%
+    );
+    padding: 5rem 0 4rem;
+    margin-top: -1px;
+  }
+
+  .page-eyebrow {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-2);
+  }
+
+  .page-hero h1 {
+    color: white;
+    margin-bottom: var(--space-2);
+  }
+
+  .page-subtitle {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0;
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-16) 0;
+    color: var(--color-text-muted);
+    font-size: 1.05rem;
+  }
+</style>
