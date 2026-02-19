@@ -19,9 +19,15 @@ const featuredProjects = projects.filter((p) => p.featured);
   <section class="hero">
     <div class="container hero-content">
       <div class="hero-text">
-        <p class="hero-eyebrow hero-anim" style="animation-delay: 0.05s">Hi, I'm</p>
-        <h1 class="hero-name hero-anim" style="animation-delay: 0.18s">張允庭</h1>
-        <p class="hero-title hero-anim" style="animation-delay: 0.32s">Flutter Developer</p>
+        <p class="hero-eyebrow hero-anim" style="animation-delay: 0.05s">
+          Hi, I'm
+        </p>
+        <h1 class="hero-name hero-anim" style="animation-delay: 0.18s">
+          張允庭
+        </h1>
+        <p class="hero-title hero-anim" style="animation-delay: 0.32s">
+          Flutter Developer
+        </p>
         <p class="hero-desc hero-anim" style="animation-delay: 0.46s">
           熱愛在雪山上滑行，也喜歡在程式碼裡探索。
           <br />分享開發心得、滑雪紀錄和各種生活思考。
@@ -33,39 +39,57 @@ const featuredProjects = projects.filter((p) => p.featured);
       </div>
     </div>
 
-    <!-- 裝飾：雪山輪廓 -->
+    <!-- 裝飾：雪山輪廓（無限向左捲動） -->
     <div class="hero-mountains" aria-hidden="true">
-      <svg viewBox="0 0 1440 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M0,200 L0,140 L120,60 L200,100 L320,20 L440,90 L560,40 L680,110 L800,50 L920,120 L1040,30 L1160,100 L1280,55 L1440,130 L1440,200 Z"
-          fill="rgba(255,255,255,0.04)"
-        />
-        <path
-          d="M0,200 L0,160 L180,90 L300,130 L420,70 L560,120 L700,65 L840,130 L960,75 L1100,140 L1220,80 L1340,130 L1440,100 L1440,200 Z"
-          fill="rgba(255,255,255,0.03)"
-        />
-      </svg>
+      <!-- 後層山脈（慢，遠景） -->
+      <div class="mountain-track mountain-back">
+        <svg
+          viewBox="0 0 2880 200"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M0,200 L0,135 L120,60 L200,100 L320,20 L440,90 L560,40 L680,110 L800,50 L920,120 L1040,30 L1160,100 L1280,55 L1440,135 L1560,60 L1640,100 L1760,20 L1880,90 L2000,40 L2120,110 L2240,50 L2360,120 L2480,30 L2600,100 L2720,55 L2880,135 L2880,200 Z"
+            fill="rgba(255,255,255,0.04)"></path>
+        </svg>
+      </div>
+      <!-- 前層山脈（快，近景） -->
+      <div class="mountain-track mountain-front">
+        <svg
+          viewBox="0 0 2880 200"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M0,200 L0,130 L110,80 L250,130 L370,65 L500,120 L620,75 L750,130 L870,60 L980,125 L1100,70 L1220,135 L1340,85 L1440,130 L1550,80 L1690,130 L1810,65 L1940,120 L2060,75 L2190,130 L2310,60 L2420,125 L2540,70 L2660,135 L2780,85 L2880,130 L2880,200 Z"
+            fill="rgba(255,255,255,0.06)"></path>
+        </svg>
+      </div>
     </div>
   </section>
 
   <!-- ===== 精選作品 ===== -->
-  {featuredProjects.length > 0 && (
-    <section class="section featured-projects">
-      <div class="container">
-        <div class="section-header reveal">
-          <h2 class="section-title">精選作品</h2>
-          <a href="/projects" class="view-all-link">查看所有作品 →</a>
+  {
+    featuredProjects.length > 0 && (
+      <section class="section featured-projects">
+        <div class="container">
+          <div class="section-header reveal">
+            <h2 class="section-title">精選作品</h2>
+            <a href="/projects" class="view-all-link">
+              查看所有作品 →
+            </a>
+          </div>
+          <div class="projects-grid">
+            {featuredProjects.map((project, i) => (
+              <div class="reveal" style={`transition-delay: ${i * 0.1}s`}>
+                <ProjectCard project={project} />
+              </div>
+            ))}
+          </div>
         </div>
-        <div class="projects-grid">
-          {featuredProjects.map((project, i) => (
-            <div class="reveal" style={`transition-delay: ${i * 0.1}s`}>
-              <ProjectCard project={project} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )}
+      </section>
+    )
+  }
 
   <!-- ===== 最新文章 ===== -->
   <section class="section recent-posts">
@@ -75,13 +99,15 @@ const featuredProjects = projects.filter((p) => p.featured);
         <a href="/blog" class="view-all-link">查看所有文章 →</a>
       </div>
 
-      {recentPosts.length > 0 ? (
-        <BlogList posts={recentPosts} reveal />
-      ) : (
-        <div class="empty-state">
-          <p>文章即將登場，敬請期待！</p>
-        </div>
-      )}
+      {
+        recentPosts.length > 0 ? (
+          <BlogList posts={recentPosts} reveal />
+        ) : (
+          <div class="empty-state">
+            <p>文章即將登場，敬請期待！</p>
+          </div>
+        )
+      }
     </div>
   </section>
 </Layout>
@@ -89,8 +115,14 @@ const featuredProjects = projects.filter((p) => p.featured);
 <style>
   /* ===== Hero 分段淡入 ===== */
   @keyframes heroFadeUp {
-    from { opacity: 0; transform: translateY(22px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .hero-anim {
@@ -168,11 +200,39 @@ const featuredProjects = projects.filter((p) => p.featured);
     right: 0;
     height: 200px;
     pointer-events: none;
+    overflow: hidden;
   }
 
-  .hero-mountains svg {
+  .mountain-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+  }
+
+  .mountain-track svg {
     width: 100%;
     height: 100%;
+  }
+
+  /* 後層：慢（遠景） */
+  .mountain-back {
+    animation: mountainScroll 150s linear infinite;
+  }
+
+  /* 前層：快（近景，製造景深） */
+  .mountain-front {
+    animation: mountainScroll 90s linear infinite;
+  }
+
+  @keyframes mountainScroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
   }
 
   /* ===== 精選作品 ===== */
