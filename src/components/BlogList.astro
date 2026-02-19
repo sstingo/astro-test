@@ -4,14 +4,17 @@ import type { Post } from '../types/sanity';
 
 interface Props {
   posts: Post[];
+  reveal?: boolean;
 }
 
-const { posts } = Astro.props;
+const { posts, reveal = false } = Astro.props;
 ---
 
 <div class="blog-list">
-  {posts.map((post) => (
-    <BlogCard post={post} />
+  {posts.map((post, i) => (
+    <div class={reveal ? 'reveal' : undefined} style={reveal ? `transition-delay: ${i * 0.1}s` : undefined}>
+      <BlogCard post={post} />
+    </div>
   ))}
 </div>
 

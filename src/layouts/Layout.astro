@@ -56,6 +56,23 @@ const {
   </body>
 </html>
 
+<script>
+  // Scroll Reveal：監聽所有 .reveal 元素，進入視窗後加上 .visible
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+  );
+
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+</script>
+
 <style is:global>
   /* ==========================================
      方案 B：粉雪夕照 (Powder Sunset)
@@ -278,5 +295,20 @@ const {
   .section-title {
     font-size: clamp(1.4rem, 3vw, 1.8rem);
     margin-bottom: var(--space-8);
+  }
+
+  /* ==========================================
+     Scroll Reveal
+   ========================================== */
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
   }
 </style>

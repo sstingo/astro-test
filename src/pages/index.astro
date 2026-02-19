@@ -19,14 +19,14 @@ const featuredProjects = projects.filter((p) => p.featured);
   <section class="hero">
     <div class="container hero-content">
       <div class="hero-text">
-        <p class="hero-eyebrow">Hi, I'm</p>
-        <h1 class="hero-name">張允庭</h1>
-        <p class="hero-title">Flutter Developer</p>
-        <p class="hero-desc">
+        <p class="hero-eyebrow hero-anim" style="animation-delay: 0.05s">Hi, I'm</p>
+        <h1 class="hero-name hero-anim" style="animation-delay: 0.18s">張允庭</h1>
+        <p class="hero-title hero-anim" style="animation-delay: 0.32s">Flutter Developer</p>
+        <p class="hero-desc hero-anim" style="animation-delay: 0.46s">
           熱愛在雪山上滑行，也喜歡在程式碼裡探索。
           <br />分享開發心得、滑雪紀錄和各種生活思考。
         </p>
-        <div class="hero-actions">
+        <div class="hero-actions hero-anim" style="animation-delay: 0.60s">
           <a href="/projects" class="btn btn-primary">查看作品集</a>
           <a href="/about" class="btn btn-outline">關於我</a>
         </div>
@@ -52,13 +52,15 @@ const featuredProjects = projects.filter((p) => p.featured);
   {featuredProjects.length > 0 && (
     <section class="section featured-projects">
       <div class="container">
-        <div class="section-header">
+        <div class="section-header reveal">
           <h2 class="section-title">精選作品</h2>
           <a href="/projects" class="view-all-link">查看所有作品 →</a>
         </div>
         <div class="projects-grid">
-          {featuredProjects.map((project) => (
-            <ProjectCard project={project} />
+          {featuredProjects.map((project, i) => (
+            <div class="reveal" style={`transition-delay: ${i * 0.1}s`}>
+              <ProjectCard project={project} />
+            </div>
           ))}
         </div>
       </div>
@@ -68,13 +70,13 @@ const featuredProjects = projects.filter((p) => p.featured);
   <!-- ===== 最新文章 ===== -->
   <section class="section recent-posts">
     <div class="container">
-      <div class="section-header">
+      <div class="section-header reveal">
         <h2 class="section-title">最新文章</h2>
         <a href="/blog" class="view-all-link">查看所有文章 →</a>
       </div>
 
       {recentPosts.length > 0 ? (
-        <BlogList posts={recentPosts} />
+        <BlogList posts={recentPosts} reveal />
       ) : (
         <div class="empty-state">
           <p>文章即將登場，敬請期待！</p>
@@ -85,6 +87,17 @@ const featuredProjects = projects.filter((p) => p.featured);
 </Layout>
 
 <style>
+  /* ===== Hero 分段淡入 ===== */
+  @keyframes heroFadeUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-anim {
+    opacity: 0;
+    animation: heroFadeUp 0.65s ease forwards;
+  }
+
   /* ===== Hero ===== */
   .hero {
     position: relative;
@@ -172,6 +185,17 @@ const featuredProjects = projects.filter((p) => p.featured);
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--space-6);
+  }
+
+  /* reveal wrapper 為 grid cell，讓卡片撐滿高度 */
+  .projects-grid > .reveal {
+    display: flex;
+    flex-direction: column;
+  }
+
+  :global(.blog-list > .reveal) {
+    display: flex;
+    flex-direction: column;
   }
 
   /* ===== 最新文章 ===== */
