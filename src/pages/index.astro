@@ -112,6 +112,80 @@ const featuredProjects = projects.filter((p) => p.featured);
   </section>
 </Layout>
 
+<script>
+  // 彩蛋：點擊 Hero → 降雪動畫
+  const hero = document.querySelector(".hero") as HTMLElement;
+  const CHARS = ["❄", "❅", "❆", "✼", "·", "*"];
+  let isSnowing = false;
+
+  function startSnow() {
+    if (isSnowing) return;
+    isSnowing = true;
+
+    const count = 50;
+    const heroH = hero.offsetHeight;
+
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const flake = document.createElement("span");
+        flake.textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
+        flake.setAttribute("aria-hidden", "true");
+
+        const size = 0.55 + Math.random() * 0.85;
+        const startX = Math.random() * 100; // % 水平位置
+        const drift = (Math.random() - 0.5) * 70; // 左右飄移
+        const dur = 2200 + Math.random() * 1800;
+
+        flake.style.cssText = `
+          position:absolute;left:${startX}%;top:-20px;
+          pointer-events:none;z-index:10;user-select:none;
+          font-size:${size}rem;
+          color:rgba(255,255,255,${0.4 + Math.random() * 0.5});
+          will-change:transform;
+        `;
+        hero.appendChild(flake);
+
+        flake
+          .animate(
+            [
+              {
+                transform: `translateX(0)              translateY(0)               rotate(0deg)`,
+                opacity: 0,
+              },
+              {
+                transform: `translateX(${drift * 0.3}px)  translateY(${heroH * 0.12}px)  rotate(60deg)`,
+                opacity: 1,
+                offset: 0.08,
+              },
+              {
+                transform: `translateX(${drift * 0.7}px)  translateY(${heroH * 0.6}px)   rotate(200deg)`,
+                opacity: 0.8,
+                offset: 0.6,
+              },
+              {
+                transform: `translateX(${drift}px)     translateY(${heroH + 20}px) rotate(360deg)`,
+                opacity: 0,
+              },
+            ],
+            { duration: dur, easing: "ease-in", fill: "forwards" },
+          )
+          .addEventListener("finish", () => flake.remove());
+      }, i * 90);
+    }
+
+    // 降雪結束後解鎖（最長雪花時間 + buffer）
+    setTimeout(
+      () => {
+        isSnowing = false;
+      },
+      count * 90 + 4200,
+    );
+  }
+
+  hero.addEventListener("click", startSnow);
+  hero.addEventListener("touchstart", startSnow, { passive: true });
+</script>
+
 <style>
   /* ===== Hero 分段淡入 ===== */
   @keyframes heroFadeUp {
