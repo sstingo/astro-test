@@ -1,5 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import SnowboardGame from "../components/SnowboardGame.astro";
+
+// 切換版本：在 .env 設定 PUBLIC_404_VERSION
+// 可用值：
+//   "snowboard-game" → 顯示滑板小遊戲
+//   （未設定 / 其他值）→ 原版頁面
+const variant = import.meta.env.PUBLIC_404_VERSION;
 ---
 
 <Layout
@@ -16,6 +23,9 @@ import Layout from "../layouts/Layout.astro";
         <a href="/blog" class="btn-ghost">查看文章</a>
       </div>
     </div>
+
+    <!-- 小遊戲（PUBLIC_404_VERSION=snowboard-game 時顯示） -->
+    {variant === "snowboard-game" && <SnowboardGame />}
 
     <!-- 裝飾：雪山 -->
     <div class="mountains" aria-hidden="true">
@@ -38,16 +48,19 @@ import Layout from "../layouts/Layout.astro";
       var(--color-hero-to) 100%
     );
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     overflow: hidden;
     margin-top: -1px;
+    padding: 4rem 0 8rem;
   }
 
   .container {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     text-align: center;
-    padding: var(--space-16) var(--space-4);
+    padding: var(--space-8) var(--space-4);
   }
 
   .error-code {
@@ -107,8 +120,9 @@ import Layout from "../layouts/Layout.astro";
     bottom: 0;
     left: 0;
     right: 0;
-    height: 200px;
+    height: 260px; /* SVG viewBox 高 200 單位，原本 1:1 設 200px；因 preserveAspectRatio="none" 可任意拉伸，調大讓山頂升高，bottom:0 確保底部無縫 */
     pointer-events: none;
+    z-index: 0; /* canvas(1) 後面 */
   }
 
   .mountains svg {

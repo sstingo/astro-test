@@ -33,3 +33,4 @@ pnpm-debug.log*
 
 # Claude AI 相關設定檔
 CLAUDE.md
+.claude/

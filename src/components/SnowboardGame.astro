@@ -1,0 +1,566 @@
+---
+// 404 頁面小遊戲：滑雪板躲障礙
+// 啟用方式：在 .env 設定 PUBLIC_404_VERSION=snowboard-game
+---
+
+<canvas id="snowboard-game"></canvas>
+
+<script>
+  // ── Canvas 初始化 ───────────────────────────────────────
+  const canvas = document.getElementById('snowboard-game') as HTMLCanvasElement;
+  if (!canvas) throw new Error('canvas not found');
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+
+  // 畫布尺寸（動態，跟隨視窗）
+  let W = 0, H = 0;
+  // GY：地面 Y 座標（畫布底部往上 60px）
+  let GY = 0;
+  // PX：玩家固定 X 位置（障礙物往左移動模擬前進）
+  const PX = 130;
+
+  /** 畫布尺寸隨視窗同步，並更新地面位置 */
+  function resize() {
+    W = canvas.clientWidth;
+    H = canvas.clientHeight;
+    canvas.width = W;
+    canvas.height = H;
+    const newGY = H - 60;
+    if (py === GY) py = newGY; // 若玩家在地面上，同步跟著移動
+    GY = newGY;
+  }
+
+  // ── 型別定義 ────────────────────────────────────────────
+  type GameState = 'idle' | 'playing' | 'dead';
+
+  interface Obstacle {
+    id: 'snow' | 'bug' | 'coffee' | 'message'; // 障礙物種類
+    x: number;                                   // 障礙物左緣 X
+    y: number;                                   // 障礙物頂部 Y
+    w: number;                                   // 寬度
+    h: number;                                   // 高度
+  }
+
+  // ── 遊戲狀態變數 ────────────────────────────────────────
+  let state: GameState = 'idle';
+
+  // 玩家物理
+  let py  = 0;     // 玩家 Y 座標（腳底）
+  let pvy = 0;     // 垂直速度（正 = 往下）
+  let onGround = true;
+
+  // 計分與速度
+  let score = 0;   // 累積幀數（÷10 = 公尺）
+  let speed = 3;   // 障礙物移動速度（px/幀），隨分數提升
+  let frame = 0;   // 總幀數（用於動畫計算）
+
+  // 障礙物
+  let obstacles: Obstacle[] = [];
+  let nextObstacleIn = 120; // 距離下一個障礙物出現的幀數倒數
+
+  // 死亡訊息
+  let deathMsg = '';
+
+  // 死亡冷卻：記錄死亡時間，強制等待後才能重開
+  let deathTime = 0;
+  const DEATH_COOLDOWN = 1500; // ms
+
+  // 動畫狀態切換（idle → balance → jump → balance → idle）
+  let transitionTimer = 0; // balance 過渡幀計數（>0 時顯示 balance）
+  let prevOnGround = true; // 上一幀的地面狀態，用來偵測起跳/落地瞬間
+
+  // ── 常數定義 ────────────────────────────────────────────
+
+  /** 死亡時隨機顯示的幽默訊息，{n} 會被替換為滑行公尺數 */
+  const MSGS = [
+    'RenderFlex overflowed by {n}m',
+    'fix: crash at {n}m',
+    'Token Usage: {n}m',
+    'TypeError: Cannot read properties of snow at {n}m',
+    '雪崩生存紀錄：{n}m',
+    '從山頂滑到山下，雪道總長 {n}m',
+  ];
+
+  /** 障礙物原始尺寸定義（碰撞用，繪製時以此為基準） */
+  const DEFS = [
+    { id: 'snow'    as const, w: 40, h: 26 }, // 雪堆（矮，需精準跳）
+    { id: 'bug'     as const, w: 52, h: 30 }, // 毛毛蟲（矮寬，4節身體）
+    { id: 'coffee'  as const, w: 34, h: 46 }, // 外帶咖啡杯（黑蓋＋橘套＋咖啡豆）
+    { id: 'message' as const, w: 52, h: 34 }, // 手機通知（寬，需跳過）
+  ];
+
+  // ── Sprite 預載 ──────────────────────────────────────────
+  // 三幀動畫：
+  //   idle    → 重心下壓站立（平時）
+  //   balance → 手臂展開（起跳 / 落地過渡）
+  //   jump    → 空中卡文姿勢
+  function loadImg(src: string): HTMLImageElement {
+    const img = new Image();
+    img.src = src;
+    return img;
+  }
+  const spriteIdle    = loadImg('/images/snowboarder-idle.png');
+  const spriteBalance = loadImg('/images/snowboarder-balance.png');
+  const spriteJump    = loadImg('/images/snowboarder-jump.png');
+
+  // ── 遊戲邏輯 ────────────────────────────────────────────
+
+  /** 在畫面右側生成一個隨機障礙物 */
+  function spawnObstacle() {
+    const def = DEFS[Math.floor(Math.random() * DEFS.length)];
+    const ob: Obstacle = { ...def, x: W + 20, y: GY - def.h };
+    obstacles.push(ob);
+    // 下一個障礙物間隔：速度越快間距略縮，但有最小下限防止太擠
+    nextObstacleIn = Math.max(80, 120 + Math.random() * 60 - speed * 4);
+  }
+
+  /** 處理跳躍 / 重新開始輸入 */
+  function jump() {
+    if (state === 'idle') { state = 'playing'; return; }
+    if (state === 'dead') {
+      if (Date.now() - deathTime >= DEATH_COOLDOWN) reset();
+      return;
+    }
+    if (onGround) { pvy = -15; onGround = false; }
+  }
+
+  /** 重置所有遊戲狀態 */
+  function reset() {
+    py = GY; pvy = 0; onGround = true;
+    score = 0; speed = 3; frame = 0;
+    obstacles = []; nextObstacleIn = 120;
+    deathMsg = '';
+    transitionTimer = 0; prevOnGround = true;
+    state = 'playing';
+  }
+
+  /** 每幀更新遊戲狀態（物理 + 碰撞 + 計分） */
+  function update() {
+    if (state !== 'playing') return;
+    frame++;
+    score++;
+
+    // 隨分數漸增速度，每 400 分 +0.6，上限 10
+    speed = Math.min(10, 3 + Math.floor(score / 400) * 0.6);
+
+    // 拋物線重力：速度越接近 0（頂點）重力越小，離頂點越遠重力越大
+    // gravity 範圍 0.25（頂點）→ 0.80（地面附近）
+    const gravity = 0.25 + 0.55 * Math.min(1, Math.abs(pvy) / 11);
+    pvy += gravity;
+    py  += pvy;
+    if (py >= GY) { py = GY; pvy = 0; onGround = true; }
+    else          { onGround = false; }
+
+    // 偵測起跳或落地瞬間 → 觸發 balance 過渡動畫（約 10 幀）
+    if (prevOnGround !== onGround) transitionTimer = 10;
+    prevOnGround = onGround;
+    if (transitionTimer > 0) transitionTimer--;
+
+    // 障礙物生成倒數
+    if (--nextObstacleIn <= 0) spawnObstacle();
+
+    // 更新障礙物位置並檢測碰撞
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      const ob = obstacles[i];
+      ob.x -= speed;
+      // 超出左側邊界則移除
+      if (ob.x < -90) { obstacles.splice(i, 1); continue; }
+
+      // 縮小碰撞框（比視覺框小一點，讓遊戲感覺公平）
+      const bsx1 = PX - 9,   bsx2 = PX + 9;
+      const bsy1 = py - 28,  bsy2 = py - 2;
+      const ox1  = ob.x + 5, ox2  = ob.x + ob.w - 5;
+      const oy1  = ob.y + 5, oy2  = ob.y + ob.h;
+
+      if (bsx1 < ox2 && bsx2 > ox1 && bsy1 < oy2 && bsy2 > oy1) {
+        deathMsg = MSGS[Math.floor(Math.random() * MSGS.length)]
+          .replace('{n}', String(Math.floor(score / 10)));
+        deathTime = Date.now();
+        state = 'dead';
+      }
+    }
+  }
+
+  // ── 繪製 ────────────────────────────────────────────────
+
+  /** 繪製玩家（依狀態選擇對應 sprite） */
+  function drawDino() {
+    const x = PX, y = py;
+
+    // 依狀態選幀：過渡中 → balance；空中 → jump；地面 → idle
+    let sprite: HTMLImageElement;
+    if (transitionTimer > 0) {
+      sprite = spriteBalance;
+    } else if (!onGround) {
+      sprite = spriteJump;
+    } else {
+      sprite = spriteIdle;
+    }
+
+    // 圖片尚未載入完成則跳過（下一幀再畫）
+    if (!sprite.complete || sprite.naturalWidth === 0) return;
+
+    // 高度固定 96px，寬度依原圖比例計算
+    const DH = 96;
+    const DW = sprite.naturalWidth / sprite.naturalHeight * DH;
+    const DX = x - DW * 0.5; // 水平置中於 SX
+    const DY = y - DH;       // 腳底對齊地面
+
+    ctx.save();
+    // 地面行進時輕微上下晃動（空中不晃）
+    const bob = onGround ? Math.round(Math.sin(frame / 14 * Math.PI) * 1.5) : 0;
+    ctx.translate(0, bob);
+    ctx.drawImage(sprite, DX, DY, DW, DH);
+    ctx.restore();
+  }
+
+  /** 繪製雪堆障礙物 */
+  function drawSnow(ob: Obstacle) {
+    ctx.save();
+    // 主體：半橢圓雪堆
+    ctx.fillStyle = 'rgba(226,232,240,0.92)';
+    ctx.beginPath();
+    ctx.ellipse(ob.x + ob.w / 2, ob.y + ob.h, ob.w / 2 + 3, ob.h * 0.78, 0, Math.PI, 0);
+    ctx.fill();
+    // 高光：左上方小橢圓
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath();
+    ctx.ellipse(ob.x + ob.w * 0.35, ob.y + ob.h * 0.28, 5, 2.5, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /** 繪製毛毛蟲障礙物（頭在左側面向玩家，4節圓潤身體，觸角朝上） */
+  function drawBug(ob: Obstacle) {
+    ctx.save();
+    const bot = ob.y + ob.h; // 地面
+    const rx = 9, ry = 11;   // 每節橢圓半寬/半高
+    const cy = bot - ry;     // 所有節段共用的中心 Y（貼齊地面）
+
+    // 4 個節段的中心 X：頭在最左（面向玩家），身體往右延伸
+    // 節距 13px，比半徑 9px 大，產生輕微重疊的圓潤感
+    const xs = [ob.x + 7, ob.x + 20, ob.x + 33, ob.x + 46];
+
+    // 小腳（每節下方各兩條細線）
+    ctx.strokeStyle = '#15803d';
+    ctx.lineWidth = 1.5;
+    for (const sx of xs) {
+      ctx.beginPath(); ctx.moveTo(sx - 5, cy + ry - 3); ctx.lineTo(sx - 8, bot); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx + 5, cy + ry - 3); ctx.lineTo(sx + 8, bot); ctx.stroke();
+    }
+
+    // 身體節段（後三節，由右往左畫確保頭部疊在最上方）
+    const bodyColors = ['#4ade80', '#22c55e', '#4ade80'];
+    for (let i = 3; i >= 1; i--) {
+      ctx.fillStyle = bodyColors[i - 1];
+      ctx.beginPath(); ctx.ellipse(xs[i], cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+      // 節段下緣弧線（模擬分節感）
+      ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(xs[i], cy, rx - 1, 0.15, Math.PI - 0.15); ctx.stroke();
+    }
+
+    // 頭部（稍大，畫在最上層）
+    ctx.fillStyle = '#16a34a';
+    ctx.beginPath(); ctx.ellipse(xs[0], cy, rx + 1, ry + 1, 0, 0, Math.PI * 2); ctx.fill();
+
+    // 眼睛（白底 + 黑瞳）
+    ctx.fillStyle = 'white';
+    ctx.beginPath(); ctx.arc(xs[0] - 3, cy - 4, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(xs[0] + 3, cy - 4, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath(); ctx.arc(xs[0] - 3, cy - 4, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(xs[0] + 3, cy - 4, 1.5, 0, Math.PI * 2); ctx.fill();
+
+    // 觸角（從頭頂伸出，末端小圓點）
+    ctx.strokeStyle = '#15803d';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(xs[0] - 3, cy - ry + 2); ctx.lineTo(xs[0] - 8, ob.y - 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(xs[0] + 3, cy - ry + 2); ctx.lineTo(xs[0] + 8, ob.y - 2); ctx.stroke();
+    ctx.fillStyle = '#15803d';
+    ctx.beginPath(); ctx.arc(xs[0] - 8, ob.y - 2, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(xs[0] + 8, ob.y - 2, 2.5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.restore();
+  }
+
+  /** 繪製外帶咖啡杯（黑蓋 + 白杯身 + 橘色杯套 + 咖啡豆圖案） */
+  function drawCoffee(ob: Obstacle) {
+    ctx.save();
+    const x = ob.x, y = ob.y, w = ob.w, h = ob.h;
+    const cx = x + w / 2;
+
+    // 梯形寬度插值：t=0 頂部全寬，t=1 底部收窄
+    const TW = w * 0.92;  // 杯頂寬
+    const BW = w * 0.74;  // 杯底寬
+    const lx = (t: number) => (TW + (BW - TW) * t) / 2; // 半寬，用於左右對稱
+
+    // 各段比例（蓋子 / 上白 / 橘套 / 下白）
+    const tLid    = 0.18;
+    const tUpper  = tLid  + 0.18;
+    const tSleeve = tUpper + 0.32;
+    // tLower = tSleeve → 1.0
+
+    const yLid    = y + h * tLid;
+    const yUpper  = y + h * tUpper;
+    const ySleeve = y + h * tSleeve;
+    const yBot    = y + h;
+
+    // ── 填色 ─────────────────────────────────────────
+
+    // 上白段
+    ctx.fillStyle = '#e8e8e8';
+    ctx.beginPath();
+    ctx.moveTo(cx - lx(tLid),   yLid);
+    ctx.lineTo(cx + lx(tLid),   yLid);
+    ctx.lineTo(cx + lx(tUpper), yUpper);
+    ctx.lineTo(cx - lx(tUpper), yUpper);
+    ctx.closePath(); ctx.fill();
+
+    // 橘色杯套
+    ctx.fillStyle = '#f5a020';
+    ctx.beginPath();
+    ctx.moveTo(cx - lx(tUpper),  yUpper);
+    ctx.lineTo(cx + lx(tUpper),  yUpper);
+    ctx.lineTo(cx + lx(tSleeve), ySleeve);
+    ctx.lineTo(cx - lx(tSleeve), ySleeve);
+    ctx.closePath(); ctx.fill();
+
+    // 下白段
+    ctx.fillStyle = '#e8e8e8';
+    ctx.beginPath();
+    ctx.moveTo(cx - lx(tSleeve), ySleeve);
+    ctx.lineTo(cx + lx(tSleeve), ySleeve);
+    ctx.lineTo(cx + lx(1),       yBot);
+    ctx.lineTo(cx - lx(1),       yBot);
+    ctx.closePath(); ctx.fill();
+
+    // ── 咖啡豆（3顆三角排列）────────────────────────
+    const beanCx = cx;
+    const beanCy = yUpper + (ySleeve - yUpper) * 0.52;
+    const bRx = 2.5, bRy = 3.5;
+
+    function drawBean(bcx: number, bcy: number, angle: number) {
+      ctx.save();
+      ctx.translate(bcx, bcy); ctx.rotate(angle);
+      ctx.fillStyle = '#7a3410';
+      ctx.strokeStyle = '#2d1400'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, bRx, bRy, 0, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      // 中心溝線
+      ctx.beginPath();
+      ctx.moveTo(0, -bRy + 1);
+      ctx.quadraticCurveTo(bRx * 0.85, 0, 0, bRy - 1);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    drawBean(beanCx - 3,  beanCy + 2,   0.35);
+    drawBean(beanCx + 3,  beanCy + 2,  -0.35);
+    drawBean(beanCx,      beanCy - 2.5, 0.05);
+
+    // ── 蓋子 ─────────────────────────────────────────
+    // 蓋緣（比杯口略寬的梯形底，夾在蓋頂與杯身之間）
+    const lidRimHW = lx(tLid) * 1.06;
+    ctx.fillStyle = '#2e2e2e';
+    ctx.beginPath();
+    ctx.moveTo(cx - lidRimHW,    yLid);
+    ctx.lineTo(cx + lidRimHW,    yLid);
+    ctx.lineTo(cx + TW * 0.44,   y + h * tLid * 0.45);
+    ctx.lineTo(cx - TW * 0.44,   y + h * tLid * 0.45);
+    ctx.closePath(); ctx.fill();
+
+    // 蓋頂扁矩形
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.roundRect(cx - TW * 0.44, y, TW * 0.88, h * tLid * 0.46, 2);
+    ctx.fill();
+
+    // ── 輪廓線 ───────────────────────────────────────
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+    // 杯身兩側 + 底
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(cx - lx(tLid), yLid);
+    ctx.lineTo(cx - lx(1),    yBot);
+    ctx.lineTo(cx + lx(1),    yBot);
+    ctx.lineTo(cx + lx(tLid), yLid);
+    ctx.stroke();
+
+    // 橘套輪廓
+    ctx.strokeStyle = '#b86e00'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cx - lx(tUpper), yUpper); ctx.lineTo(cx + lx(tUpper), yUpper);
+    ctx.moveTo(cx - lx(tSleeve), ySleeve); ctx.lineTo(cx + lx(tSleeve), ySleeve);
+    ctx.moveTo(cx - lx(tUpper), yUpper); ctx.lineTo(cx - lx(tSleeve), ySleeve);
+    ctx.moveTo(cx + lx(tUpper), yUpper); ctx.lineTo(cx + lx(tSleeve), ySleeve);
+    ctx.stroke();
+
+    // 蓋頂輪廓
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(cx - TW * 0.44, y, TW * 0.88, h * tLid * 0.46, 2);
+    ctx.stroke();
+
+    // 蓋緣斜側線 + 底線
+    ctx.beginPath();
+    ctx.moveTo(cx - TW * 0.44,  y + h * tLid * 0.45);
+    ctx.lineTo(cx - lidRimHW,   yLid);
+    ctx.moveTo(cx + TW * 0.44,  y + h * tLid * 0.45);
+    ctx.lineTo(cx + lidRimHW,   yLid);
+    ctx.moveTo(cx - lidRimHW,   yLid);
+    ctx.lineTo(cx + lidRimHW,   yLid);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /** 繪製手機通知障礙物（藍色對話泡泡 + 紅色角標） */
+  function drawMessage(ob: Obstacle) {
+    ctx.save();
+    const x = ob.x, y = ob.y, w = ob.w, h = ob.h;
+    const cx = x + w / 2;
+    // 陰影
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.roundRect(x + 2, y + 2, w, h, 8); ctx.fill();
+    // 泡泡本體
+    ctx.fillStyle = '#0284c7';
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, 8); ctx.fill();
+    // 泡泡尾巴（左下角小三角）
+    ctx.beginPath();
+    ctx.moveTo(x + 10, y + h);
+    ctx.lineTo(x + 3,  y + h + 9);
+    ctx.lineTo(x + 20, y + h);
+    ctx.closePath(); ctx.fill();
+    // 紅色通知角標
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath(); ctx.arc(x + w - 9, y + 9, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('!', x + w - 9, y + 12);
+    // 訊息文字行（模擬文字）
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillRect(x + 8, y + 9,  w * 0.38, 4);  // 名稱行
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.fillRect(x + 8, y + 18, w * 0.60, 3);  // 內文第一行
+    ctx.fillRect(x + 8, y + 25, w * 0.45, 3);  // 內文第二行
+    ctx.textAlign = 'left';
+    ctx.restore();
+  }
+
+  /** 繪製地面線與移動的雪地紋路 */
+  function drawGround() {
+    // 地面線
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, GY + 1);
+    ctx.lineTo(W, GY + 1);
+    ctx.stroke();
+    // 雪地點狀紋路（偏移量隨 frame × speed 滾動，製造視差感）
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    const offset = (frame * speed) % 80;
+    for (let x = -offset; x < W; x += 80) {
+      ctx.beginPath();
+      ctx.arc(x + 26, GY + 11, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /** 繪製右下角距離分數 */
+  function drawScore() {
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '13px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${Math.floor(score / 10)}m`, W - 20, H - 20);
+    ctx.textAlign = 'left';
+  }
+
+  /** 繪製 idle 狀態提示文字 */
+  function drawIdleHint() {
+    ctx.fillStyle = 'rgba(255,255,255,0.22)';
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('點擊畫面或按空白鍵，開始滑板', W / 2, H - 20);
+    ctx.textAlign = 'left';
+  }
+
+  /** 繪製死亡覆蓋層（GAMEOVER 訊息） */
+  function drawDeadOverlay() {
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(0, GY - 80, W, 120);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff6b4a';
+    ctx.font = 'bold 22px monospace';
+    ctx.fillText('💀 GAMEOVER', W / 2, GY - 36);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.font = '14px monospace';
+    ctx.fillText(deathMsg, W / 2, GY - 10);
+
+    const elapsed = Date.now() - deathTime;
+    const remaining = DEATH_COOLDOWN - elapsed;
+    ctx.font = '11px monospace';
+    if (remaining > 0) {
+      // 冷卻期間：顯示倒數秒數，透明度隨時間淡入
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillText(`${Math.ceil(remaining / 1000)} 秒後可重新出發…`, W / 2, GY + 16);
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.fillText('點擊畫面或按空白鍵，重新出發', W / 2, GY + 16);
+    }
+    ctx.textAlign = 'left';
+  }
+
+  /** 每幀完整繪製 */
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    drawGround();
+    for (const ob of obstacles) {
+      if (ob.id === 'snow')         drawSnow(ob);
+      else if (ob.id === 'bug')     drawBug(ob);
+      else if (ob.id === 'coffee')  drawCoffee(ob);
+      else                          drawMessage(ob);
+    }
+    drawDino();
+    if (state === 'playing') drawScore();
+    if (state === 'idle')    drawIdleHint();
+    if (state === 'dead')    drawDeadOverlay();
+  }
+
+  /** 主迴圈：update → draw → 下一幀 */
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // ── 操控事件 ────────────────────────────────────────────
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') {
+      e.preventDefault();
+      jump();
+    }
+  });
+  canvas.addEventListener('click', jump);
+  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
+
+  // ── 啟動 ────────────────────────────────────────────────
+  resize();
+  py = GY;
+  window.addEventListener('resize', resize);
+  loop();
+</script>
+
+<style>
+  #snowboard-game {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* 雪山(0) 上方，文字容器(2) 下方 */
+    display: block;
+    cursor: pointer;
+  }
+</style>
