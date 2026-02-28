@@ -64,9 +64,6 @@
   let deathTime = 0;
   const DEATH_COOLDOWN = 1500; // ms
 
-  // 動畫狀態切換（idle → balance → jump → balance → idle）
-  let transitionTimer = 0; // balance 過渡幀計數（>0 時顯示 balance）
-  let prevOnGround = true; // 上一幀的地面狀態，用來偵測起跳/落地瞬間
 
   // ── 常數定義 ────────────────────────────────────────────
 
@@ -89,18 +86,16 @@
   ];
 
   // ── Sprite 預載 ──────────────────────────────────────────
-  // 三幀動畫：
-  //   idle    → 重心下壓站立（平時）
-  //   balance → 手臂展開（起跳 / 落地過渡）
-  //   jump    → 空中卡文姿勢
+  // 兩幀動畫：
+  //   idle → 重心下壓站立（在地面時）
+  //   jump → 空中卡文姿勢
   function loadImg(src: string): HTMLImageElement {
     const img = new Image();
     img.src = src;
     return img;
   }
-  const spriteIdle    = loadImg('/images/snowboarder-idle.png');
-  const spriteBalance = loadImg('/images/snowboarder-balance.png');
-  const spriteJump    = loadImg('/images/snowboarder-jump.png');
+  const spriteIdle = loadImg('/images/snowboarder-idle.png');
+  const spriteJump = loadImg('/images/snowboarder-jump.png');
 
   // ── 遊戲邏輯 ────────────────────────────────────────────
 
@@ -129,7 +124,6 @@
     score = 0; speed = 3; frame = 0;
     obstacles = []; nextObstacleIn = 120;
     deathMsg = '';
-    transitionTimer = 0; prevOnGround = true;
     state = 'playing';
   }
 
@@ -149,11 +143,6 @@
     py  += pvy;
     if (py >= GY) { py = GY; pvy = 0; onGround = true; }
     else          { onGround = false; }
-
-    // 偵測起跳或落地瞬間 → 觸發 balance 過渡動畫（約 10 幀）
-    if (prevOnGround !== onGround) transitionTimer = 10;
-    prevOnGround = onGround;
-    if (transitionTimer > 0) transitionTimer--;
 
     // 障礙物生成倒數
     if (--nextObstacleIn <= 0) spawnObstacle();
@@ -183,18 +172,11 @@
   // ── 繪製 ────────────────────────────────────────────────
 
   /** 繪製玩家（依狀態選擇對應 sprite） */
-  function drawDino() {
+  function drawPlayer() {
     const x = PX, y = py;
 
-    // 依狀態選幀：過渡中 → balance；空中 → jump；地面 → idle
-    let sprite: HTMLImageElement;
-    if (transitionTimer > 0) {
-      sprite = spriteBalance;
-    } else if (!onGround) {
-      sprite = spriteJump;
-    } else {
-      sprite = spriteIdle;
-    }
+    // 依狀態選幀：空中 → jump；地面 → idle
+    const sprite = onGround ? spriteIdle : spriteJump;
 
     // 圖片尚未載入完成則跳過（下一幀再畫）
     if (!sprite.complete || sprite.naturalWidth === 0) return;
@@ -523,7 +505,7 @@
       else if (ob.id === 'coffee')  drawCoffee(ob);
       else                          drawMessage(ob);
     }
-    drawDino();
+    drawPlayer();
     if (state === 'playing') drawScore();
     if (state === 'idle')    drawIdleHint();
     if (state === 'dead')    drawDeadOverlay();
